@@ -5,7 +5,8 @@ import Combine
 @main
 class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem!
-    private var popover: NSPopover!
+    private var settingsWindow: NSPanel?
+    private var clickOutsideMonitor: Any?
     private var currentPanel: ResultPanel?
     private var cancellables = Set<AnyCancellable>()
 
@@ -41,10 +42,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             button.target = self
         }
 
-        popover = NSPopover()
-        popover.contentSize = NSSize(width: 320, height: 500)
-        popover.behavior = .transient
-        popover.contentViewController = NSHostingController(rootView: SettingsView())
     }
 
     private func setupHotkeys() {
@@ -71,12 +68,53 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc private func togglePopover() {
+        if let win = settingsWindow, win.isVisible {
+            dismissSettings()
+            return
+        }
+
         guard let button = statusItem.button else { return }
-        if popover.isShown {
-            popover.performClose(nil)
-        } else {
-            popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
-            NSApp.activate(ignoringOtherApps: true)
+        let buttonRect = button.window!.convertToScreen(button.convert(button.bounds, to: nil))
+
+        let hosting = NSHostingController(rootView: SettingsView())
+        hosting.view.layoutSubtreeIfNeeded()
+        let contentSize = hosting.view.fittingSize
+
+        let panel = NSPanel(
+            contentRect: NSRect(x: 0, y: 0, width: contentSize.width, height: contentSize.height),
+            styleMask: [.nonactivatingPanel, .fullSizeContentView],
+            backing: .buffered,
+            defer: false
+        )
+        panel.contentViewController = hosting
+        panel.isOpaque = false
+        panel.backgroundColor = .clear
+        panel.level = .statusBar
+        panel.hasShadow = true
+        panel.appearance = NSAppearance(named: .darkAqua)
+        panel.isMovable = false
+
+        let x = buttonRect.midX - contentSize.width / 2
+        let y = buttonRect.minY - contentSize.height - 4
+        panel.setFrameOrigin(NSPoint(x: x, y: y))
+        panel.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+
+        settingsWindow = panel
+
+        clickOutsideMonitor = NSEvent.addGlobalMonitorForEvents(
+            matching: [.leftMouseDown, .rightMouseDown]
+        ) { [weak self] _ in
+            self?.dismissSettings()
+        }
+    }
+
+    private func dismissSettings() {
+        settingsWindow?.orderOut(nil)
+        settingsWindow = nil
+        if let monitor = clickOutsideMonitor {
+            NSEvent.removeMonitor(monitor)
+            clickOutsideMonitor = nil
         }
     }
 

@@ -8,7 +8,6 @@ struct SettingsView: View {
     @State private var hasAccessibility = false
 
     var body: some View {
-        ScrollView {
         VStack(alignment: .leading, spacing: 12) {
             Text("FixGrammar")
                 .font(.headline)
@@ -129,8 +128,12 @@ struct SettingsView: View {
         }
         .padding()
         .frame(width: 320)
-        }
-        .frame(maxHeight: 500)
+        .background(
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .fill(.ultraThickMaterial)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .preferredColorScheme(.dark)
         .onAppear {
             loadModels()
             hasAccessibility = AccessibilityService.isTrusted()
