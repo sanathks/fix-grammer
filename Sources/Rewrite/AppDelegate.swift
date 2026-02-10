@@ -2,6 +2,10 @@ import AppKit
 import SwiftUI
 import Combine
 
+private class KeyablePanel: NSPanel {
+    override var canBecomeKey: Bool { true }
+}
+
 @main
 class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem!
@@ -22,6 +26,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        setupMainMenu()
         setupMenuBar()
         setupHotkeys()
         observeShortcutChanges()
@@ -29,6 +34,21 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if !AccessibilityService.isTrusted() {
             AccessibilityService.requestPermission()
         }
+    }
+
+    private func setupMainMenu() {
+        let editMenu = NSMenu(title: "Edit")
+        editMenu.addItem(withTitle: "Cut", action: #selector(NSText.cut(_:)), keyEquivalent: "x")
+        editMenu.addItem(withTitle: "Copy", action: #selector(NSText.copy(_:)), keyEquivalent: "c")
+        editMenu.addItem(withTitle: "Paste", action: #selector(NSText.paste(_:)), keyEquivalent: "v")
+        editMenu.addItem(withTitle: "Select All", action: #selector(NSText.selectAll(_:)), keyEquivalent: "a")
+
+        let editMenuItem = NSMenuItem(title: "Edit", action: nil, keyEquivalent: "")
+        editMenuItem.submenu = editMenu
+
+        let mainMenu = NSMenu()
+        mainMenu.addItem(editMenuItem)
+        NSApp.mainMenu = mainMenu
     }
 
     private func setupMenuBar() {
@@ -80,7 +100,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         hosting.view.layoutSubtreeIfNeeded()
         let contentSize = hosting.view.fittingSize
 
-        let panel = NSPanel(
+        let panel = KeyablePanel(
             contentRect: NSRect(x: 0, y: 0, width: contentSize.width, height: contentSize.height),
             styleMask: [.nonactivatingPanel, .fullSizeContentView],
             backing: .buffered,
@@ -93,6 +113,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         panel.hasShadow = true
         panel.appearance = NSAppearance(named: .darkAqua)
         panel.isMovable = false
+        panel.becomesKeyOnlyIfNeeded = false
 
         let x = buttonRect.midX - contentSize.width / 2
         let y = buttonRect.minY - contentSize.height - 4
@@ -139,7 +160,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             prompt = Prompts.grammar(text: text)
         }
 
-        OllamaService.shared.generate(prompt: prompt) { result in
+        LLMService.shared.generate(prompt: prompt) { result in
             DispatchQueue.main.async {
                 switch result {
                 case .success(let corrected):
@@ -183,7 +204,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         func runMode(_ mode: RewriteMode) {
             let prompt = Prompts.rewrite(mode: mode, text: text)
-            OllamaService.shared.generate(prompt: prompt) { result in
+            LLMService.shared.generate(prompt: prompt) { result in
                 switch result {
                 case .success(let rewritten):
                     panel.updateResult(rewritten)

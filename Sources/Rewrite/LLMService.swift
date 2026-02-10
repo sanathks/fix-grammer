@@ -1,6 +1,6 @@
 import Foundation
 
-enum OllamaError: Error, LocalizedError {
+enum LLMError: Error, LocalizedError {
     case invalidURL
     case connectionFailed(String)
     case requestFailed(Int)
@@ -10,26 +10,26 @@ enum OllamaError: Error, LocalizedError {
     var errorDescription: String? {
         switch self {
         case .invalidURL:
-            return "Invalid Ollama URL. Check your settings."
+            return "Invalid server URL. Check your settings."
         case .connectionFailed(let detail):
-            return "Cannot connect to Ollama: \(detail)"
+            return "Cannot connect to LLM server: \(detail)"
         case .requestFailed(let code):
-            return "Ollama returned HTTP \(code)."
+            return "LLM server returned HTTP \(code)."
         case .noData:
-            return "No response from Ollama."
+            return "No response from LLM server."
         case .decodingFailed(let detail):
-            return "Failed to parse Ollama response: \(detail)"
+            return "Failed to parse LLM server response: \(detail)"
         }
     }
 }
 
-final class OllamaService {
-    static let shared = OllamaService()
+final class LLMService {
+    static let shared = LLMService()
     private init() {}
 
-    func generate(prompt: String, completion: @escaping (Result<String, OllamaError>) -> Void) {
+    func generate(prompt: String, completion: @escaping (Result<String, LLMError>) -> Void) {
         let settings = Settings.shared
-        guard let url = URL(string: "\(settings.ollamaURL)/api/generate") else {
+        guard let url = URL(string: "\(settings.serverURL)/v1/chat/completions") else {
             completion(.failure(.invalidURL))
             return
         }
@@ -41,9 +41,11 @@ final class OllamaService {
 
         let body: [String: Any] = [
             "model": settings.modelName,
-            "prompt": prompt,
-            "stream": true,
-            "options": ["temperature": 0.3]
+            "messages": [
+                ["role": "user", "content": prompt]
+            ],
+            "temperature": 0.3,
+            "stream": false
         ]
 
         do {
@@ -69,24 +71,16 @@ final class OllamaService {
                 return
             }
 
-            // Parse NDJSON: each line is a JSON object with a "response" field
-            let text = String(data: data, encoding: .utf8) ?? ""
-            var result = ""
-
-            for line in text.components(separatedBy: "\n") where !line.isEmpty {
-                guard let lineData = line.data(using: .utf8),
-                      let json = try? JSONSerialization.jsonObject(with: lineData) as? [String: Any],
-                      let fragment = json["response"] as? String else {
-                    continue
-                }
-                result += fragment
-            }
-
-            if result.isEmpty {
+            guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                  let choices = json["choices"] as? [[String: Any]],
+                  let first = choices.first,
+                  let message = first["message"] as? [String: Any],
+                  let content = message["content"] as? String else {
                 completion(.failure(.noData))
-            } else {
-                completion(.success(result.trimmingCharacters(in: .whitespacesAndNewlines)))
+                return
             }
+
+            completion(.success(content.trimmingCharacters(in: .whitespacesAndNewlines)))
         }
 
         task.resume()
@@ -94,7 +88,7 @@ final class OllamaService {
 
     func fetchModels(completion: @escaping ([String]) -> Void) {
         let settings = Settings.shared
-        guard let url = URL(string: "\(settings.ollamaURL)/api/tags") else {
+        guard let url = URL(string: "\(settings.serverURL)/v1/models") else {
             completion([])
             return
         }
@@ -107,11 +101,11 @@ final class OllamaService {
                   let httpResponse = response as? HTTPURLResponse,
                   httpResponse.statusCode == 200,
                   let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-                  let models = json["models"] as? [[String: Any]] else {
+                  let models = json["data"] as? [[String: Any]] else {
                 completion([])
                 return
             }
-            let names = models.compactMap { $0["name"] as? String }.sorted()
+            let names = models.compactMap { $0["id"] as? String }.sorted()
             completion(names)
         }.resume()
     }

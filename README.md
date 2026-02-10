@@ -6,7 +6,7 @@
 
 </div>
 
-A lightweight macOS menu bar app for system-wide grammar correction and text rewriting, powered by local LLMs via [Ollama](https://ollama.com). Select text in any app, hit a keyboard shortcut, and get instant results.
+A lightweight macOS menu bar app for system-wide grammar correction and text rewriting, powered by local LLMs via [Ollama](https://ollama.com) or [LM Studio](https://lmstudio.ai). Select text in any app, hit a keyboard shortcut, and get instant results.
 
 All processing happens locally. No data leaves your machine.
 
@@ -39,11 +39,12 @@ chmod +x Scripts/build.sh Scripts/install.sh
 
 ### Prerequisites
 
-- [Ollama](https://ollama.com) installed and running
-- A model pulled (default: `gemma3`):
+- [Ollama](https://ollama.com) or [LM Studio](https://lmstudio.ai) installed and running
+- For Ollama, pull a model (default: `gemma3`):
   ```bash
   ollama pull gemma3
   ```
+- For LM Studio, load a model and start the local server (default port: `1234`)
 
 ## Usage
 
@@ -72,8 +73,8 @@ Click the menu bar icon to access settings:
 
 ![Settings](screenshots/settings.png)
 
-- **Ollama URL** -- default: `http://localhost:11434`
-- **Model** -- auto-detected from your Ollama instance
+- **Server URL** -- default: `http://localhost:11434` (Ollama) or `http://localhost:1234` (LM Studio)
+- **Model** -- auto-detected from your LLM server
 - **Rewrite Modes** -- click Configure to edit mode names and prompts
 - **Shortcuts** -- click to rebind the grammar and rewrite hotkeys
 - **Default Mode** -- choose which mode the grammar shortcut uses (Grammar Fix or any rewrite mode)
@@ -85,7 +86,7 @@ Settings persist across app restarts.
 Rewrite uses the macOS Accessibility API to read selected text from any app. When you trigger a shortcut:
 
 1. Reads the selected text via accessibility
-2. Sends it to your local Ollama instance with a tailored prompt
+2. Sends it to your local LLM server with a tailored prompt
 3. For grammar fix: silently replaces the text in-place
 4. For rewrite: shows a popup near your selection with mode options and the result
 5. On "Replace", writes the corrected text back into the source app via accessibility

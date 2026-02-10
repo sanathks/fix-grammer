@@ -15,11 +15,11 @@ struct SettingsView: View {
             Divider()
 
             VStack(alignment: .leading, spacing: 4) {
-                Text("Ollama URL")
+                Text("Server URL")
                     .font(.caption)
                     .foregroundColor(.secondary)
                 HStack {
-                    TextField("http://localhost:11434", text: $settings.ollamaURL)
+                    TextField("http://localhost:11434", text: $settings.serverURL)
                         .textFieldStyle(.roundedBorder)
                     Button {
                         loadModels()
@@ -71,16 +71,16 @@ struct SettingsView: View {
                 Text("Shortcuts (click to change)")
                     .font(.caption)
                     .foregroundColor(.secondary)
-                ShortcutRecorder(label: "Fix Grammar", shortcut: $settings.grammarShortcut)
-                ShortcutRecorder(label: "Rewrite", shortcut: $settings.rewriteShortcut)
+                ShortcutRecorder(label: "Quick Fix", shortcut: $settings.grammarShortcut)
+                ShortcutRecorder(label: "Rewrite Modes", shortcut: $settings.rewriteShortcut)
             }
 
             VStack(alignment: .leading, spacing: 4) {
-                Text("Default Mode (Fix Grammar shortcut)")
+                Text("Default Mode (Quick Fix shortcut)")
                     .font(.caption)
                     .foregroundColor(.secondary)
                 Picker("", selection: defaultModeBinding) {
-                    Text("Grammar Fix").tag("")
+                    Text("Fix Grammar").tag("")
                     ForEach(settings.rewriteModes) { mode in
                         Text(mode.name).tag(mode.id.uuidString)
                     }
@@ -94,7 +94,7 @@ struct SettingsView: View {
                 Circle()
                     .fill(isConnected ? Color.green : Color.red)
                     .frame(width: 8, height: 8)
-                Text(isConnected ? "Ollama Connected" : "Ollama Disconnected")
+                Text(isConnected ? "Connected" : "Disconnected")
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
@@ -111,6 +111,10 @@ struct SettingsView: View {
                     Spacer()
                     Button("Grant") {
                         AccessibilityService.requestPermission()
+                    }
+                    .controlSize(.small)
+                    Button("Relaunch") {
+                        relaunchApp()
                     }
                     .controlSize(.small)
                 }
@@ -156,9 +160,20 @@ struct SettingsView: View {
         )
     }
 
+    private func relaunchApp() {
+        let url = Bundle.main.bundleURL
+        let task = Process()
+        task.executableURL = URL(fileURLWithPath: "/usr/bin/open")
+        task.arguments = ["-n", url.path]
+        try? task.run()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            NSApp.terminate(nil)
+        }
+    }
+
     private func loadModels() {
         isLoadingModels = true
-        OllamaService.shared.fetchModels { models in
+        LLMService.shared.fetchModels { models in
             DispatchQueue.main.async {
                 availableModels = models
                 isConnected = !models.isEmpty

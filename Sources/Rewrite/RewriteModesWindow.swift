@@ -23,6 +23,7 @@ final class RewriteModesWindow {
             defer: false
         )
         win.title = "Rewrite Modes"
+        win.isReleasedWhenClosed = false
         win.contentViewController = hosting
         win.setContentSize(NSSize(width: 460, height: 400))
         win.minSize = NSSize(width: 360, height: 300)

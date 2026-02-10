@@ -27,8 +27,8 @@ struct RewriteMode: Codable, Identifiable, Equatable {
 final class Settings: ObservableObject {
     static let shared = Settings()
 
-    @Published var ollamaURL: String {
-        didSet { UserDefaults.standard.set(ollamaURL, forKey: "ollamaURL") }
+    @Published var serverURL: String {
+        didSet { UserDefaults.standard.set(serverURL, forKey: "ollamaURL") }
     }
 
     @Published var modelName: String {
@@ -92,7 +92,7 @@ final class Settings: ObservableObject {
 
     private init() {
         let defaults = UserDefaults.standard
-        self.ollamaURL = defaults.string(forKey: "ollamaURL") ?? "http://localhost:11434"
+        self.serverURL = defaults.string(forKey: "ollamaURL") ?? "http://localhost:11434"
         self.modelName = defaults.string(forKey: "modelName") ?? "gemma3"
 
         // Default: Ctrl+Shift+G for grammar
