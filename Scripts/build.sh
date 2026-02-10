@@ -7,16 +7,26 @@ APP_NAME="Rewrite"
 BUILD_DIR="$PROJECT_DIR/build"
 APP_BUNDLE="$BUILD_DIR/$APP_NAME.app"
 
+ARCH_FLAGS=""
+for arch in "$@"; do
+    ARCH_FLAGS="$ARCH_FLAGS --arch $arch"
+done
+
 echo "Building $APP_NAME..."
 cd "$PROJECT_DIR"
-swift build -c release
+swift build -c release $ARCH_FLAGS
 
 echo "Creating app bundle..."
 rm -rf "$APP_BUNDLE"
 mkdir -p "$APP_BUNDLE/Contents/MacOS"
 mkdir -p "$APP_BUNDLE/Contents/Resources"
 
-cp "$PROJECT_DIR/.build/release/$APP_NAME" "$APP_BUNDLE/Contents/MacOS/$APP_NAME"
+if [ $# -gt 0 ]; then
+    # Multi-arch build: binary is under apple/Products
+    cp "$PROJECT_DIR/.build/apple/Products/Release/$APP_NAME" "$APP_BUNDLE/Contents/MacOS/$APP_NAME"
+else
+    cp "$PROJECT_DIR/.build/release/$APP_NAME" "$APP_BUNDLE/Contents/MacOS/$APP_NAME"
+fi
 cp "$PROJECT_DIR/Resources/Info.plist" "$APP_BUNDLE/Contents/Info.plist"
 cp "$PROJECT_DIR/Resources/AppIcon.icns" "$APP_BUNDLE/Contents/Resources/AppIcon.icns"
 echo "APPL????" > "$APP_BUNDLE/Contents/PkgInfo"
