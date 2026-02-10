@@ -54,10 +54,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private func setupMenuBar() {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         if let button = statusItem.button {
-            button.image = NSImage(
-                systemSymbolName: "text.badge.checkmark",
-                accessibilityDescription: "Rewrite"
-            )
+            if let iconURL = Bundle.main.url(forResource: "icon", withExtension: "png"),
+               let source = NSImage(contentsOf: iconURL) {
+                let image = NSImage(size: NSSize(width: 18, height: 18), flipped: false) { _ in
+                    source.draw(in: NSRect(x: 0, y: 1, width: 18, height: 17))
+                    return true
+                }
+                image.isTemplate = true
+                button.image = image
+            }
             button.action = #selector(togglePopover)
             button.target = self
         }

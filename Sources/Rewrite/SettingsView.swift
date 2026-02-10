@@ -1,4 +1,5 @@
 import SwiftUI
+import ServiceManagement
 
 struct SettingsView: View {
     @ObservedObject private var settings = Settings.shared
@@ -6,6 +7,7 @@ struct SettingsView: View {
     @State private var isLoadingModels = false
     @State private var isConnected = false
     @State private var hasAccessibility = false
+    @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -121,6 +123,21 @@ struct SettingsView: View {
             }
 
             Divider()
+
+            Toggle("Launch at Login", isOn: $launchAtLogin)
+                .toggleStyle(.switch)
+                .controlSize(.small)
+                .onChange(of: launchAtLogin) { enabled in
+                    do {
+                        if enabled {
+                            try SMAppService.mainApp.register()
+                        } else {
+                            try SMAppService.mainApp.unregister()
+                        }
+                    } catch {
+                        launchAtLogin = SMAppService.mainApp.status == .enabled
+                    }
+                }
 
             HStack {
                 Spacer()

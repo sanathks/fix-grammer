@@ -29,6 +29,7 @@ else
 fi
 cp "$PROJECT_DIR/Resources/Info.plist" "$APP_BUNDLE/Contents/Info.plist"
 cp "$PROJECT_DIR/Resources/AppIcon.icns" "$APP_BUNDLE/Contents/Resources/AppIcon.icns"
+cp "$PROJECT_DIR/Resources/icon.png" "$APP_BUNDLE/Contents/Resources/icon.png"
 echo "APPL????" > "$APP_BUNDLE/Contents/PkgInfo"
 
 echo "Build complete: $APP_BUNDLE"

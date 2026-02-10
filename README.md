@@ -1,9 +1,7 @@
 # Rewrite
 
 <div align="center">
-
-# ✏️
-
+<img src="Resources/logo.png" width="128" alt="Rewrite">
 </div>
 
 A lightweight macOS menu bar app for system-wide grammar correction and text rewriting, powered by local LLMs via [Ollama](https://ollama.com) or [LM Studio](https://lmstudio.ai). Select text in any app, hit a keyboard shortcut, and get instant results.
@@ -48,7 +46,7 @@ chmod +x Scripts/build.sh Scripts/install.sh
 
 ## Usage
 
-1. Launch **Rewrite** -- a checkmark icon appears in the menu bar
+1. Launch **Rewrite** -- an R icon appears in the menu bar
 2. Select text in any app (browser, Slack, Notes, TextEdit, etc.)
 3. Press `Ctrl+Shift+G` to silently fix grammar (text is replaced in-place, no popup)
 4. Press `Ctrl+Shift+T` to open the rewrite popup with mode selection
@@ -78,6 +76,7 @@ Click the menu bar icon to access settings:
 - **Rewrite Modes** -- click Configure to edit mode names and prompts
 - **Shortcuts** -- click to rebind the grammar and rewrite hotkeys
 - **Default Mode** -- choose which mode the grammar shortcut uses (Grammar Fix or any rewrite mode)
+- **Launch at Login** -- start Rewrite automatically when you log in
 
 Settings persist across app restarts.
 
