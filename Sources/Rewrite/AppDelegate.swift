@@ -36,7 +36,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if let button = statusItem.button {
             button.image = NSImage(
                 systemSymbolName: "text.badge.checkmark",
-                accessibilityDescription: "FixGrammar"
+                accessibilityDescription: "Rewrite"
             )
             button.action = #selector(togglePopover)
             button.target = self

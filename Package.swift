@@ -3,14 +3,14 @@
 import PackageDescription
 
 let package = Package(
-    name: "FixGrammar",
+    name: "Rewrite",
     platforms: [
         .macOS(.v13)
     ],
     targets: [
         .executableTarget(
-            name: "FixGrammar",
-            path: "Sources/FixGrammar"
+            name: "Rewrite",
+            path: "Sources/Rewrite"
         )
     ]
 )

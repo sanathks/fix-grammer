@@ -1,4 +1,4 @@
-# FixGrammar
+# Rewrite
 
 <div align="center">
 
@@ -31,7 +31,7 @@ The app is installed to `~/Applications/`. You may need to log out and back in f
 
 ## Usage
 
-1. Launch **FixGrammar** -- a checkmark icon appears in the menu bar
+1. Launch **Rewrite** -- a checkmark icon appears in the menu bar
 2. Select text in any app (browser, Slack, Notes, TextEdit, etc.)
 3. Press `Ctrl+Shift+G` to silently fix grammar (text is replaced in-place, no popup)
 4. Press `Ctrl+Shift+T` to open the rewrite popup with mode selection
@@ -59,19 +59,19 @@ Click the menu bar icon to access settings:
 - **Ollama URL** -- default: `http://localhost:11434`
 - **Model** -- auto-detected from your Ollama instance
 - **Rewrite Modes** -- click Configure to edit mode names and prompts
-- **Shortcuts** -- click to rebind the Fix Grammar and Rewrite hotkeys
-- **Default Mode** -- choose which mode the Fix Grammar shortcut uses (Grammar Fix or any rewrite mode)
+- **Shortcuts** -- click to rebind the grammar and rewrite hotkeys
+- **Default Mode** -- choose which mode the grammar shortcut uses (Grammar Fix or any rewrite mode)
 
 Settings persist across app restarts.
 
 ## How It Works
 
-FixGrammar uses the macOS Accessibility API to read selected text from any app. When you trigger a shortcut:
+Rewrite uses the macOS Accessibility API to read selected text from any app. When you trigger a shortcut:
 
 1. Reads the selected text via accessibility
 2. Sends it to your local Ollama instance with a tailored prompt
-3. For Fix Grammar: silently replaces the text in-place
-4. For Rewrite: shows a popup near your selection with mode options and the result
+3. For grammar fix: silently replaces the text in-place
+4. For rewrite: shows a popup near your selection with mode options and the result
 5. On "Replace", writes the corrected text back into the source app via accessibility
 
 ## License

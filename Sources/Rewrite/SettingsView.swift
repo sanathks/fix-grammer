@@ -9,7 +9,7 @@ struct SettingsView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("FixGrammar")
+            Text("Rewrite")
                 .font(.headline)
 
             Divider()
