@@ -6,11 +6,15 @@ on:
       - "v*"
 
 jobs:
-  release:
-    runs-on: macos-latest
-    permissions:
-      contents: write
-
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: macos-latest
+            arch: arm64
+          - os: macos-13
+            arch: x86_64
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -19,7 +23,23 @@ jobs:
         run: bash Scripts/build.sh
 
       - name: Zip app
-        run: cd build && zip -r Rewrite.zip Rewrite.app
+        run: cd build && zip -r Rewrite-${{ matrix.arch }}.zip Rewrite.app
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Rewrite-${{ matrix.arch }}
+          path: build/Rewrite-${{ matrix.arch }}.zip
+
+  release:
+    needs: build
+    runs-on: macos-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
 
       - name: Extract version
         id: version
@@ -28,26 +48,62 @@ jobs:
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release create "$GITHUB_REF_NAME" build/Rewrite.zip --title "Rewrite ${{ steps.version.outputs.version }}" --generate-notes
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            Rewrite-arm64/Rewrite-arm64.zip \
+            Rewrite-x86_64/Rewrite-x86_64.zip \
+            --repo "${{ github.repository }}" \
+            --title "Rewrite ${{ steps.version.outputs.version }}" \
+            --generate-notes
 
       - name: Compute SHA256
         id: sha
-        run: echo "sha256=$(shasum -a 256 build/Rewrite.zip | awk '{print $1}')" >> "$GITHUB_OUTPUT"
+        run: |
+          echo "sha256_arm64=$(shasum -a 256 Rewrite-arm64/Rewrite-arm64.zip | awk '{print $1}')" >> "$GITHUB_OUTPUT"
+          echo "sha256_x86_64=$(shasum -a 256 Rewrite-x86_64/Rewrite-x86_64.zip | awk '{print $1}')" >> "$GITHUB_OUTPUT"
 
       - name: Update Homebrew tap
         env:
           HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
         run: |
           VERSION="${{ steps.version.outputs.version }}"
-          SHA256="${{ steps.sha.outputs.sha256 }}"
-          DOWNLOAD_URL="https://github.com/${{ github.repository }}/releases/download/${GITHUB_REF_NAME}/Rewrite.zip"
+          SHA256_ARM64="${{ steps.sha.outputs.sha256_arm64 }}"
+          SHA256_X86_64="${{ steps.sha.outputs.sha256_x86_64 }}"
+          ARM64_URL="https://github.com/${{ github.repository }}/releases/download/${GITHUB_REF_NAME}/Rewrite-arm64.zip"
+          X86_64_URL="https://github.com/${{ github.repository }}/releases/download/${GITHUB_REF_NAME}/Rewrite-x86_64.zip"
 
           git clone https://x-access-token:${HOMEBREW_TAP_TOKEN}@github.com/sanathks/homebrew-rewrite.git tap
           cd tap
 
-          sed -i '' "s|version \".*\"|version \"${VERSION}\"|" Formula/rewrite.rb
-          sed -i '' "s|url \".*\"|url \"${DOWNLOAD_URL}\"|" Formula/rewrite.rb
-          sed -i '' "s|sha256 \".*\"|sha256 \"${SHA256}\"|" Formula/rewrite.rb
+          cat > Formula/rewrite.rb << FORMULA
+          class Rewrite < Formula
+            desc "macOS menu bar app for grammar correction and text rewriting"
+            homepage "https://github.com/sanathks/rewrite"
+            version "${VERSION}"
+            license "MIT"
+
+            on_arm do
+              url "${ARM64_URL}"
+              sha256 "${SHA256_ARM64}"
+            end
+
+            on_intel do
+              url "${X86_64_URL}"
+              sha256 "${SHA256_X86_64}"
+            end
+
+            head "https://github.com/sanathks/rewrite.git", branch: "main"
+
+            def install
+              if build.head?
+                system "bash", "Scripts/build.sh"
+                prefix.install "build/Rewrite.app"
+              else
+                prefix.install "Rewrite.app"
+              end
+            end
+          end
+          FORMULA
 
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
