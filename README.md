@@ -12,9 +12,12 @@ All processing happens locally. No data leaves your machine.
 
 ### Download
 
-Download the latest universal binary from [Releases](https://github.com/sanathks/rewrite/releases/latest):
+| Platform | Download |
+|----------|----------|
+| macOS (Apple Silicon) | [Rewrite-apple-silicon.dmg](https://github.com/sanathks/rewrite/releases/latest/download/Rewrite-apple-silicon.dmg) |
+| macOS (Intel) | [Rewrite-intel.dmg](https://github.com/sanathks/rewrite/releases/latest/download/Rewrite-intel.dmg) |
 
-1. Download **Rewrite.dmg**
+1. Download the DMG for your Mac
 2. Open the DMG and drag **Rewrite.app** to your Applications folder
 3. Launch Rewrite and grant Accessibility permissions when prompted
 

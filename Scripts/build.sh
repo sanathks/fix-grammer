@@ -34,8 +34,19 @@ echo "APPL????" > "$APP_BUNDLE/Contents/PkgInfo"
 
 echo "App bundle created: $APP_BUNDLE"
 
+# Determine DMG filename based on architecture
+if [ $# -eq 1 ]; then
+    case "$1" in
+        arm64) DMG_SUFFIX="-apple-silicon" ;;
+        x86_64) DMG_SUFFIX="-intel" ;;
+        *) DMG_SUFFIX="-$1" ;;
+    esac
+else
+    DMG_SUFFIX=""
+fi
+
 # Create DMG
-DMG_PATH="$BUILD_DIR/$APP_NAME.dmg"
+DMG_PATH="$BUILD_DIR/${APP_NAME}${DMG_SUFFIX}.dmg"
 DMG_TEMP="$BUILD_DIR/dmg_staging"
 rm -rf "$DMG_TEMP" "$DMG_PATH"
 mkdir -p "$DMG_TEMP"

@@ -15,8 +15,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Build universal binary and DMG
-        run: bash Scripts/build.sh arm64 x86_64
+      - name: Build Apple Silicon DMG
+        run: bash Scripts/build.sh arm64
+
+      - name: Build Intel DMG
+        run: bash Scripts/build.sh x86_64
 
       - name: Extract version
         id: version
@@ -25,4 +28,9 @@ jobs:
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release create "$GITHUB_REF_NAME" build/Rewrite.dmg --title "Rewrite ${{ steps.version.outputs.version }}" --generate-notes
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            build/Rewrite-apple-silicon.dmg \
+            build/Rewrite-intel.dmg \
+            --title "Rewrite ${{ steps.version.outputs.version }}" \
+            --generate-notes
